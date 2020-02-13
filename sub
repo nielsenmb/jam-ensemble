@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#module load Python/3.6.3-iomkl-2018a
+
+#git --git-dir=/rds/homes/d/daviesgr/Software/PBjam/.git pull
+#python3 -m pip install ~/Software/PBjam --user
+
+for filename in Scripts/*.sh; do
+  sbatch $filename
+done
