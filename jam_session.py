@@ -1,13 +1,38 @@
+'''jam_session.py
+Author(s)
+---------
+Alex Lyttle
+
+Description
+-----------
+This script should be copied into your working directory and the
+capitalised variables changed as required. Input data should be in CSV format
+as required by `dictlike` in `pbjam.session` with column headers as follows:
+
+ID,numax,numax_err,dnu,dnu_err,teff,teff_err,bp_rp,bp_rp_err,(timeseries),(psd)
+
+where those in brackets are optional. Read 
+https://pbjam.readthedocs.io/en/latest/example-session.html for more
+information.
+
+Currently, this script crudely sub-classes `pbjam.session` and modifies a 
+helper function to catch errors when downloading lightcurves (e.g. if it is not
+available).
+
+'''
 import pbjam as pb
 import warnings
 import pandas as pd
 import os
 from pbjam.session import *
 
+# Modify capitalised variables below
 PATH_TO_INPUT_DATA = 'test/input/jam_session_test_data.csv'
 OUTPUT_DATA_DIR = 'test/output'
 LIGHTCURVE_DOWNLOAD_DIR = '.lightkurve-cache'
 MISSION = 'Kepler'
+N_ORDERS = 9  # Number of radial orders to fit about nu_max
+MAKE_PLOTS = True
 
 failed_lk_query = pd.DataFrame()
 
@@ -34,7 +59,8 @@ def lc_to_lk(vardf, download_dir, use_cached=True):
                     lk_lc = query_lightkurve(id, download_dir, use_cached, D)
                     vardf.at[i, key] = lk_lc
                 except Exception as exc:
-                    print(f'Lightkurve query failed on {id} due to:\n{exc}\nThis target will be removed from the sample.')
+                    print(f'Lightkurve query failed on {id} due to:\n{exc}\n' +
+                          'This target will be removed from the sample.')
                     failed_lk_query.at[id, 'error'] = str(exc)
                     vardf = vardf.drop(i)
 
@@ -50,7 +76,8 @@ def lc_to_lk(vardf, download_dir, use_cached=True):
         except KeyError:
             pass
         
-    vardf.reset_index(inplace=True)  # Resets indices to avoid issues later on.
+    vardf = vardf.reset_index()  # Resets indices to avoid issues later on.
+    return vardf
 
 
 class jam(session):
@@ -72,10 +99,13 @@ class jam(session):
                 try:
                     vardf = pd.DataFrame.from_records(dictlike)
                 except TypeError:
-                    print('Unrecognized type in dictlike. Must be able to convert to dataframe through pandas.DataFrame.from_records()')
+                    print('Unrecognized type in dictlike. Must be able to ' +
+                          'convert to dataframe through ' +
+                          'pandas.DataFrame.from_records()')
 
             if any([ID, numax, dnu, teff, bp_rp]):
-                warnings.warn('Dictlike provided as input, ignoring other input fit parameters.')
+                warnings.warn('Dictlike provided as input, ignoring other ' +
+                              'input fit parameters.')
 
             organize_sess_dataframe(vardf)
 
@@ -91,12 +121,13 @@ class jam(session):
         # Take whatever is in the timeseries column of vardf and make it an
         # lk.lightcurve object or None
 
-        lc_to_lk(vardf, download_dir, use_cached=use_cached)
+        vardf = lc_to_lk(vardf, download_dir, use_cached=use_cached)
         
         # Take whatever is in the timeseries column of vardf and turn it into
         # a periodogram object in the periodogram column.
 
         lk_to_pg(vardf)
+
 
         for i in range(len(vardf)):
             self.stars.append(star(ID=vardf.loc[i, 'ID'],
@@ -109,14 +140,48 @@ class jam(session):
 
         for i, st in enumerate(self.stars):
             if st.numax[0] > st.f[-1]:
-                warnings.warn("Input numax is greater than Nyquist frequeny for %s" % (st.ID))
+                warnings.warn("Input numax is greater than Nyquist frequeny " +
+                              "for %s" % (st.ID))
+
+    def __call__(self, bw_fac=1, tune=1500, norders=8, model_type='simple', 
+                 verbose=False, nthreads=1, store_chains=False, 
+                 make_plots=False):
+        """ The doitall script
+        Calling session will by default do asymptotic mode ID and peakbagging
+        for all stars in the session.
+        Parameters
+        ----------
+        norders : int
+            Number of orders to include in the fits
+            
+        """
+        
+        self.pb_model_type = model_type
+
+        for i, st in enumerate(self.stars):
+            try:
+                st(bw_fac=bw_fac, tune=tune, norders=norders, 
+                   model_type=self.pb_model_type, verbose=verbose, 
+                   make_plots=make_plots, store_chains=store_chains, 
+                   nthreads=nthreads)
+                
+                self.stars[i] = None
+                    
+            except Exception as ex:
+                message = ("Star {0} produced an exception of type {1} " +
+                           "occurred. Arguments:\n{2!r}"
+                           ).format(st.ID, type(ex).__name__, ex.args)
+                print(message)
+                failed_lk_query.at[id, 'error'] = str(ex)
+
             
 if __name__ == '__main__':
     jam_session = jam(dictlike=PATH_TO_INPUT_DATA, mission=MISSION,
-                    download_dir=LIGHTCURVE_DOWNLOAD_DIR,
-                    path=OUTPUT_DATA_DIR)
+                      download_dir=LIGHTCURVE_DOWNLOAD_DIR,
+                      path=OUTPUT_DATA_DIR)
 
-    jam_session(norders=9, make_plots=True)
+    jam_session(norders=N_ORDERS, make_plots=MAKE_PLOTS)
 
-    failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR, 'failed_lk_targets.csv'),
-                        index_label=f'{MISSION} ID')
+    failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR,
+                                        'failed_lk_targets.csv'),
+                           index_label=f'id')
