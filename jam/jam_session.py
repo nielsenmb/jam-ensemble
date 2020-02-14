@@ -34,9 +34,9 @@ MISSION = 'Kepler'
 N_ORDERS = 9  # Number of radial orders to fit about nu_max
 MAKE_PLOTS = True
 
-failed_lk_query = pd.DataFrame()
+# failed_lk_query = pd.DataFrame()
 
-def lc_to_lk(vardf, download_dir, use_cached=True):
+def lc_to_lk(vardf, download_dir, failed_lk_query, use_cached=True):
     """ Add 'try and except' brute force to avoid errors.
     """
 
@@ -121,13 +121,19 @@ class jam(session):
         # Take whatever is in the timeseries column of vardf and make it an
         # lk.lightcurve object or None
 
-        vardf = lc_to_lk(vardf, download_dir, use_cached=use_cached)
+        failed_lk_query = pd.DataFrame()
+        
+        vardf = lc_to_lk(vardf, download_dir, self.failed_lk_query,
+                         use_cached=use_cached)
+
+        failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR,
+                                       'failed_lk_targets.csv'),
+                                       index_label=f'id')
         
         # Take whatever is in the timeseries column of vardf and turn it into
         # a periodogram object in the periodogram column.
 
         lk_to_pg(vardf)
-
 
         for i in range(len(vardf)):
             self.stars.append(star(ID=vardf.loc[i, 'ID'],
@@ -182,6 +188,6 @@ if __name__ == '__main__':
 
     jam_session(norders=N_ORDERS, make_plots=MAKE_PLOTS)
 
-    failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR,
-                                        'failed_lk_targets.csv'),
-                           index_label=f'id')
+    # jam_session.failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR,
+    #                                    'failed_lk_targets.csv'),
+    #                                    index_label=f'id')
