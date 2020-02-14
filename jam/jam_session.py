@@ -31,6 +31,16 @@ from pbjam.session import *
 
 # failed_lk_query = pd.DataFrame()
 
+def append_failed_targets(path, id, exception):
+    df = pd.DataFrame()
+    df.at[id, 'exception'] = str(exception)
+    full_path = os.path.join(path, 'failed_targets.csv')
+    
+    if os.path.isfile(full_path):
+        df.to_csv(full_path, mode='a', header=False)
+    else:
+        df.to_csv(full_path, index_label='ID')
+
 def lc_to_lk(vardf, download_dir, path, use_cached=True):
     """ Add 'try and except' brute force to avoid errors.
     """
@@ -54,10 +64,11 @@ def lc_to_lk(vardf, download_dir, path, use_cached=True):
                 try:
                     lk_lc = query_lightkurve(id, download_dir, use_cached, D)
                     vardf.at[i, key] = lk_lc
-                except Exception as exc:
-                    print(f'Lightkurve query failed on {id} due to:\n{exc}\n' +
+                except Exception as ex:
+                    print(f'Lightkurve query failed on {id} due to:\n{ex}\n' +
                           'This target will be removed from the sample.')
-                    failed_lk_query.at[id, 'error'] = str(exc)
+                    append_failed_targets(path, id, ex)
+                    # failed_lk_query.at[id, 'error'] = str(exc)
                     vardf = vardf.drop(i)
 
         elif vardf.loc[i, key].__module__ == lk.lightcurve.__name__:
@@ -72,8 +83,8 @@ def lc_to_lk(vardf, download_dir, path, use_cached=True):
         except KeyError:
             pass
     
-    failed_lk_query.to_csv(os.path.join(path, 'failed_lk_targets.csv'),
-                           index_label=f'id')
+    # failed_lk_query.to_csv(os.path.join(path, 'failed_lk_targets.csv'),
+    #                        index_label=f'id')
     
     vardf = vardf.reset_index()  # Resets indices to avoid issues later on.
     return vardf
@@ -90,6 +101,11 @@ class jam(session):
                  quarter=None, mission=None, path=None, download_dir=None):
 
         self.stars = []
+        self.path = path
+        
+        # Make sure path exists
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
         
         if isinstance(dictlike, (dict, np.recarray, pd.DataFrame, str)):
             if isinstance(dictlike, str):
@@ -116,15 +132,11 @@ class jam(session):
                                         mission=mission)
             format_col(vardf, timeseries, 'timeseries')
             format_col(vardf, psd, 'psd')
-
-        # Make sure path exists
-        if not os.path.exists(path):
-            os.makedirs(path)
         
         # Take whatever is in the timeseries column of vardf and make it an
         # lk.lightcurve object or None
         
-        vardf = lc_to_lk(vardf, download_dir, path, use_cached=use_cached)
+        vardf = lc_to_lk(vardf, download_dir, self.path, use_cached=use_cached)
         
         # Take whatever is in the timeseries column of vardf and turn it into
         # a periodogram object in the periodogram column.
@@ -174,7 +186,8 @@ class jam(session):
                            "occurred. Arguments:\n{2!r}"
                            ).format(st.ID, type(ex).__name__, ex.args)
                 print(message)
-                failed_lk_query.at[id, 'error'] = str(ex)
+                # failed_lk_query.at[id, 'error'] = str(ex)
+                append_failed_targets(self.path, st.ID, ex)
 
             
 if __name__ == '__main__':
