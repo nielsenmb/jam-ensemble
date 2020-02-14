@@ -1,6 +1,5 @@
 numpy
 lightkurve
-pandas
 pbjam
 matplotlib
 PyYAML
