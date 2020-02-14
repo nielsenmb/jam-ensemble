@@ -1,0 +1,14 @@
+session:
+  n_cores : 500
+  path_to_input_data : /full/path/to/pbjam_input.csv
+  output_data_dir : logs
+  lightkurve_download_dir : .lightkurve_cache
+  mission : Kepler
+  n_orders : 9
+  make_plots: TRUE
+  kde_bandwidth : 1.0
+bluebear:
+  account : my-bluebear-account
+  qos : bluebear-qos
+  ntasks_per_job : 2
+  path_to_venv : ~/.virtualenvs/my_venv

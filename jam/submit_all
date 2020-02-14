@@ -5,6 +5,6 @@
 #git --git-dir=/rds/homes/d/daviesgr/Software/PBjam/.git pull
 #python3 -m pip install ~/Software/PBjam --user
 
-for filename in Scripts/*.sh; do
+for filename in scripts/*.sh; do
   sbatch $filename
 done

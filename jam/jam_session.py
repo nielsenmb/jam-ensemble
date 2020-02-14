@@ -19,6 +19,9 @@ Currently, this script crudely sub-classes `pbjam.session` and modifies a
 helper function to catch errors when downloading lightcurves (e.g. if it is not
 available).
 
+Some of this code is copied from 
+https://github.com/grd349/PBjam/blob/master/pbjam/session.py
+
 '''
 import pbjam as pb
 import warnings
@@ -26,20 +29,13 @@ import pandas as pd
 import os
 from pbjam.session import *
 
-# Modify capitalised variables below
-PATH_TO_INPUT_DATA = 'test/input/jam_session_test_data.csv'
-OUTPUT_DATA_DIR = 'test/output'
-LIGHTCURVE_DOWNLOAD_DIR = '.lightkurve-cache'
-MISSION = 'Kepler'
-N_ORDERS = 9  # Number of radial orders to fit about nu_max
-MAKE_PLOTS = True
-
 # failed_lk_query = pd.DataFrame()
 
-def lc_to_lk(vardf, download_dir, failed_lk_query, use_cached=True):
+def lc_to_lk(vardf, download_dir, path, use_cached=True):
     """ Add 'try and except' brute force to avoid errors.
     """
-
+    failed_lk_query = pd.DataFrame()
+    
     tinyoffset = 1  # to avoid cases LC median = 0 (lk doesn't like it)
     key = 'timeseries'
     for i, id in enumerate(vardf['ID']):
@@ -75,7 +71,10 @@ def lc_to_lk(vardf, download_dir, failed_lk_query, use_cached=True):
                 sort_lc(vardf.loc[i, key])
         except KeyError:
             pass
-        
+    
+    failed_lk_query.to_csv(os.path.join(path, 'failed_lk_targets.csv'),
+                           index_label=f'id')
+    
     vardf = vardf.reset_index()  # Resets indices to avoid issues later on.
     return vardf
 
@@ -118,17 +117,14 @@ class jam(session):
             format_col(vardf, timeseries, 'timeseries')
             format_col(vardf, psd, 'psd')
 
+        # Make sure path exists
+        if not os.path.exists(path):
+            os.makedirs(path)
+        
         # Take whatever is in the timeseries column of vardf and make it an
         # lk.lightcurve object or None
-
-        failed_lk_query = pd.DataFrame()
         
-        vardf = lc_to_lk(vardf, download_dir, self.failed_lk_query,
-                         use_cached=use_cached)
-
-        failed_lk_query.to_csv(os.path.join(OUTPUT_DATA_DIR,
-                                       'failed_lk_targets.csv'),
-                                       index_label=f'id')
+        vardf = lc_to_lk(vardf, download_dir, path, use_cached=use_cached)
         
         # Take whatever is in the timeseries column of vardf and turn it into
         # a periodogram object in the periodogram column.
@@ -182,6 +178,14 @@ class jam(session):
 
             
 if __name__ == '__main__':
+    # Modify capitalised variables below for testing
+    PATH_TO_INPUT_DATA = '../test/input/jam_session_test_data.csv'
+    OUTPUT_DATA_DIR = '../test/logs'
+    LIGHTCURVE_DOWNLOAD_DIR = '.lightkurve-cache'
+    MISSION = 'Kepler'
+    N_ORDERS = 9  # Number of radial orders to fit about nu_max
+    MAKE_PLOTS = True
+    
     jam_session = jam(dictlike=PATH_TO_INPUT_DATA, mission=MISSION,
                       download_dir=LIGHTCURVE_DOWNLOAD_DIR,
                       path=OUTPUT_DATA_DIR)
