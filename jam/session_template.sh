@@ -4,7 +4,7 @@
 #SBATCH --time 12:0:0
 #SBATCH --qos QOS
 #SBATCH --mail-type NONE
-#SBATCH --job-name=pbj-IDX
+#SBATCH --job-name=pbj_IDX
 #SBATCH --account=ACCOUNT
 #SBATCH --constraint cascadelake
 
