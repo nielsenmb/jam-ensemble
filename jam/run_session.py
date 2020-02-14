@@ -21,7 +21,7 @@ df = pd.read_csv(config['path_to_input_data'])
 # Force theano to compile to a unique directory for each job!
 compile_dir = os.path.join(*[config['output_data_dir'], '.theano', 'PID' + sys.argv[1]])
 if not os.path.exists(compile_dir):
-    os.mkdir(compile_dir)
+    os.makedirs(compile_dir)
 os.environ["THEANO_FLAGS"] = 'base_compiledir=' + compile_dir
 
 from jam_session import jam
