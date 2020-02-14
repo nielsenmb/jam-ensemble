@@ -7,14 +7,15 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
 1. Clone the repo.
 
    ```none
-   % module load git
+   % module load bear-apps/2019b
+   % module load git/2.23.0-GCCcore-8.3.0-nodocs
    % git clone https://github.com/alexlyttle/jam-ensemble.git
    ```
 
 2. Load the following python module:
 
    ```none
-   % module load bear-apps/2019b
+   % module load GCC/8.3.0
    % module load Python/3.7.4-GCCcore-8.3.0
    ```
 
@@ -23,7 +24,7 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
    ```none
    % virtualenv ~/.virtualenvs/my_venv
    % source ~/.virtualenvs/my_venv/bin/activate
-   (my_venv) % pip install -r requirements.txt
+   (my_venv) % pip install -r jam-ensemble/requirements.txt
    ```
 
 4. Copy `jam-ensemble/jam` to a different directory, e.g.

@@ -12,6 +12,7 @@ set -e
 
 module purge; module load bluebear # this line is required
 module load bear-apps/2019b
+module load GCC/8.3.0
 module load Python/3.7.4-GCCcore-8.3.0
 
 source VENV_PATH/bin/activate
