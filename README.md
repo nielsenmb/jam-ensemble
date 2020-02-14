@@ -31,6 +31,7 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
 
    ```none
    % cp -r jam-ensemble/jam /path/to/example-jam
+   % cd /path/to/example-jam
    ```
 
 5. Edit `config.yaml` with appropriate configurations (e.g. paths and script options).
@@ -40,7 +41,7 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
 7. Run `submit_all` to submit the jobs
 
    ```none
-   % submit_all
+   % ./submit_all
    ```
 
 8. Sit back and relax while it all works without fault.\*
