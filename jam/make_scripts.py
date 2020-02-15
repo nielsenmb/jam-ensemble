@@ -5,8 +5,8 @@ from yaml import safe_load
 import os
 import warnings
 
-config_keys = ['n_cores', 'path_to_input_data']
-bear_keys = ['account', 'qos', 'ntasks_per_job', 'path_to_venv', 'time_per_job']
+config_keys = ['path_to_input_data']
+bear_keys = ['n_jobs', 'account', 'qos', 'ntasks_per_job', 'path_to_venv', 'time_per_job']
 
 with open('config.yml') as stream:
     options = safe_load(stream)
@@ -17,23 +17,23 @@ with open('config.yml') as stream:
     if not all([key in bear.keys() for key in bear_keys]):
         raise KeyError(f'File config.yml must contain options for all of {bear_keys}.')
 
-ncores = config['n_cores']
-njobs = len(pd.read_csv(config['path_to_input_data']))
+n_jobs = bear['n_jobs']
+n_stars = len(pd.read_csv(config['path_to_input_data']))
 
-if ncores > njobs:
-    ncores = njobs
+if n_jobs > n_stars:
+    n_jobs = n_stars
 
-print(f'Njobs : {njobs}, Ncores : {ncores}')
+print(f'n_stars : {n_stars}, n_jobs : {n_jobs}')
 
 with open('session_template.sh') as fin:
     template = fin.read()
 
-njobs_per_script = np.floor(njobs / ncores)
-if njobs_per_script < 1:
-    njobs_per_script = 1
+n_stars_per_script = np.floor(n_stars / n_jobs)
+if n_stars_per_script < 1:
+    n_stars_per_script = 1
 
-start = np.arange(ncores) * njobs_per_script
-end = start + njobs_per_script
+start = np.arange(n_jobs) * n_stars_per_script
+end = start + n_stars_per_script
 
 if not os.path.exists('scripts'):
     os.mkdir('scripts')
@@ -43,7 +43,7 @@ elif len(os.listdir('scripts')) > 0:
 
 for idx, st in enumerate(start):
     sr = template.replace('START', str(int(st)))
-    sr = sr.replace('END', str(int(st + njobs_per_script)))
+    sr = sr.replace('END', str(int(st + n_stars_per_script)))
     sr = sr.replace('IDX', str(idx))
     sr = sr.replace('NTASKS', str(int(bear['ntasks_per_job'])))
     sr = sr.replace('QOS', str(bear['qos']))
