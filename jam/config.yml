@@ -11,4 +11,5 @@ bluebear:
   account : my-bluebear-account
   qos : bluebear-qos
   ntasks_per_job : 2
+  time_per_job : 5:0:0
   path_to_venv : ~/.virtualenvs/my_venv

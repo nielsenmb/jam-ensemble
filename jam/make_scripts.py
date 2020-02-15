@@ -6,7 +6,7 @@ import os
 import warnings
 
 config_keys = ['n_cores', 'path_to_input_data']
-bear_keys = ['account', 'qos', 'ntasks_per_job', 'path_to_venv']
+bear_keys = ['account', 'qos', 'ntasks_per_job', 'path_to_venv', 'time_per_job']
 
 with open('config.yml') as stream:
     options = safe_load(stream)
@@ -50,6 +50,7 @@ for idx, st in enumerate(start):
     sr = sr.replace('ACCOUNT', str(bear['account']))
     sr = sr.replace('VENV_PATH', str(bear['path_to_venv']))
     sr = sr.replace('PY_PATH', os.path.join(os.getcwd(), 'run_session.py'))
-
+    sr = sr.replace('TIME', str(bear['time_per_job']))
+    
     with open(f'scripts/session_{idx}.sh', 'w') as file:
         file.write(sr)
