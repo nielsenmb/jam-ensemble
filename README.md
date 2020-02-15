@@ -34,7 +34,7 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
    % cd /path/to/example-jam
    ```
 
-5. Edit `config.yaml` with appropriate configurations (e.g. paths and script options).
+5. Edit `config.yaml` with appropriate configurations (e.g. paths and script options) (see [below](#config))
 
 6. Run `make_scripts.py` to generate scripts for each BlueBEAR job.
 
@@ -47,3 +47,7 @@ Peakbagging with [PBjam](https://github.com/grd349/PBjam) on many stars. This re
 8. Sit back and relax while it all works without fault.\*
 
 \* Disclaimer: [Murphy's Law](https://en.wikipedia.org/wiki/Murphy%27s_law)
+
+## Configuration
+
+The config file comprises two sections: `session` and `bluebear`. The first contains options to pass to `pbjam.session` and the second configures the BlueBEAR sbatch scripts.
