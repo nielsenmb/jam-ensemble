@@ -1,15 +1,16 @@
+# Configuration file. Edit where appropriate
 session:
-  n_cores : 500
   path_to_input_data : /full/path/to/pbjam_input.csv
-  output_data_dir : logs
-  lightkurve_download_dir : .lightkurve_cache
-  mission : Kepler
-  n_orders : 9
-  make_plots: TRUE
-  kde_bandwidth : 1.0
+  output_data_dir : logs                              # Relative path to store output data
+  lightkurve_download_dir : .lightkurve_cache         # Relative path to cache lightkurve downloads
+  mission : Kepler                                    # Mission (Kepler, K2, TESS, or leave blank) 
+  n_orders : 9                                        # Number of orders to peakbag
+  make_plots: TRUE                                    # Make and save plots (TRUE or FALSE)
+  kde_bandwidth : 1.0                                 # For custom KDE bandwidth factor, otherwise 1.0
 bluebear:
+  n_jobs : 500                                        # Total number of jobs to run
   account : my-bluebear-account
   qos : bluebear-qos
-  ntasks_per_job : 2
-  time_per_job : 5:0:0
-  path_to_venv : ~/.virtualenvs/my_venv
+  ntasks_per_job : 2                                  # Number of CPU cores per job
+  time_per_job : 5:0:0                                # Maximum runtime per job (hh:mm:ss)
+  path_to_venv : ~/.virtualenvs/my_venv               # Full path to virtual environment (see README.md)
