@@ -1,12 +1,11 @@
 #!/bin/bash
 #SBATCH --ntasks NTASKS
-#SBATCH --nodes 1
 #SBATCH --time TIME
 #SBATCH --qos QOS
 #SBATCH --mail-type NONE
 #SBATCH --job-name=pbj_IDX
 #SBATCH --account=ACCOUNT
-#SBATCH --constraint cascadelake
+#SBATCH --constraint cascadelake|haswell
 
 set -e
 
