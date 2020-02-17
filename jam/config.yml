@@ -12,5 +12,5 @@ bluebear:
   account : my-bluebear-account
   qos : bluebear-qos
   ntasks_per_job : 2                                  # Number of CPU cores per job
-  time_per_job : 5:0:0                                # Maximum runtime per job (hh:mm:ss)
+  time_per_job : '5:0:0'                              # Maximum runtime per job (hh:mm:ss)
   path_to_venv : ~/.virtualenvs/my_venv               # Full path to virtual environment (see README.md)
