@@ -28,12 +28,15 @@ print(f'n_stars : {n_stars}, n_jobs : {n_jobs}')
 with open('session_template.sh') as fin:
     template = fin.read()
 
-n_stars_per_script = np.floor(n_stars / n_jobs)
-if n_stars_per_script < 1:
-    n_stars_per_script = 1
+#n_stars_per_script = np.floor(n_stars / n_jobs)
 
-start = np.arange(n_jobs) * n_stars_per_script
-end = start + n_stars_per_script
+#if n_stars_per_script < 1:
+#    n_stars_per_script = 1
+
+if n_stars < n_jobs:
+    n_jobs = n_stars
+    
+indexes = np.array([round(x) for x in np.linspace(0, n_stars, n_jobs+1)])
 
 if not os.path.exists('scripts'):
     os.mkdir('scripts')
@@ -41,10 +44,10 @@ elif len(os.listdir('scripts')) > 0:
     warnings.warn('Directory /scripts is not empty, consider removing ' +
                   'unwanted files and rerunning this script.')
 
-for idx, st in enumerate(start):
-    sr = template.replace('START', str(int(st)))
-    sr = sr.replace('END', str(int(st + n_stars_per_script)))
-    sr = sr.replace('IDX', str(idx))
+for i in range(n_jobs):
+    sr = template.replace('START', str(int(indexes[i])))
+    sr = sr.replace('END', str(int(indexes[i+1])))
+    sr = sr.replace('IDX', str(i))
     sr = sr.replace('NTASKS', str(int(bear['ntasks_per_job'])))
     sr = sr.replace('QOS', str(bear['qos']))
     sr = sr.replace('ACCOUNT', str(bear['account']))
@@ -52,5 +55,5 @@ for idx, st in enumerate(start):
     sr = sr.replace('PY_PATH', os.path.join(os.getcwd(), 'run_session.py'))
     sr = sr.replace('TIME', str(bear['time_per_job']))
     
-    with open(f'scripts/session_{idx}.sh', 'w') as file:
+    with open(f'scripts/session_{i}.sh', 'w') as file:
         file.write(sr)
