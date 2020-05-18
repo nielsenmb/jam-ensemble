@@ -17,6 +17,8 @@ with open('config.yml') as stream:
     if not all([key in bear.keys() for key in bear_keys]):
         raise KeyError(f'File config.yml must contain options for all of {bear_keys}.')
 
+
+
 n_jobs = bear['n_jobs']
 n_stars = len(pd.read_csv(config['path_to_input_data']))
 
@@ -27,11 +29,6 @@ print(f'n_stars : {n_stars}, n_jobs : {n_jobs}')
 
 with open('session_template.sh') as fin:
     template = fin.read()
-
-#n_stars_per_script = np.floor(n_stars / n_jobs)
-
-#if n_stars_per_script < 1:
-#    n_stars_per_script = 1
 
 if n_stars < n_jobs:
     n_jobs = n_stars
@@ -54,6 +51,7 @@ for i in range(n_jobs):
     sr = sr.replace('VENV_PATH', str(bear['path_to_venv']))
     sr = sr.replace('PY_PATH', os.path.join(os.getcwd(), 'run_session.py'))
     sr = sr.replace('TIME', str(bear['time_per_job']))
-    
+    sr = sr.replace('COMPDIR', os.path.join(*[config['output_data_dir'], '.theano', 'PID' + str(int(indexes[i]))]))
+
     with open(f'scripts/session_{i}.sh', 'w') as file:
         file.write(sr)

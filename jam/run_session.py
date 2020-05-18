@@ -39,5 +39,4 @@ jam_session = jam(dictlike=df, mission=config['mission'],
 jam_session(norders=config['n_orders'], make_plots=config['make_plots'],
             bw_fac=config['kde_bandwidth'])
 
-shutil.rmtree(compile_dir)
 print('Finished.')
